@@ -16,6 +16,7 @@
         .input:focus { border-color: var(--primary); }
         .btn { padding: 7px 14px; border: none; border-radius: 5px; font-size: 12px; font-weight: 500; cursor: pointer; }
         .btn-primary { background: var(--primary); color: #fff; }
+        .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
         .btn-secondary { background: var(--white); color: var(--text); border: 1px solid var(--border); }
         .main { max-width: 1200px; margin: 0 auto; padding: 20px 24px; }
         .card { background: var(--white); border: 1px solid var(--border); border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,.06); margin-bottom: 20px; }
@@ -48,6 +49,8 @@
         table { width: 100%; border-collapse: collapse; font-size: 11px; }
         th { text-align: left; padding: 6px 8px; font-size: 10px; font-weight: 600; color: var(--text2); text-transform: uppercase; border-bottom: 2px solid var(--border); }
         td { padding: 6px 8px; border-bottom: 1px solid #f0f1f3; }
+        .chart-wrap { position: relative; height: 350px; }
+        .chart-wrap canvas { width: 100% !important; height: 100% !important; }
     </style>
 </head>
 <body x-data="app()">
@@ -55,15 +58,13 @@
     <header class="header">
         <span class="header-title">Аналитический центр клиента</span>
         <div style="display: flex; gap: 10px; align-items: center;">
-            <input type="text" class="input" x-model="searchId" @keyup.enter="analyze()" placeholder="ID контакта">
-            <button class="btn btn-primary" @click="analyze()">Анализ</button>
-            <button class="btn btn-secondary" @click="refresh()">Обновить</button>
+            <input type="text" class="input" x-model="searchId" @keyup.enter="analyze()" placeholder="ID контакта" :disabled="loading">
+            <button class="btn btn-primary" @click="analyze()" :disabled="loading || !searchId">Анализ</button>
         </div>
     </header>
     
     <main class="main" x-show="client">
         
-        <!-- КАРТОЧКА -->
         <div class="card">
             <div class="card-header" x-text="client.organization || 'Клиент'"></div>
             <div class="card-body">
@@ -83,53 +84,43 @@
             </div>
         </div>
         
-        <!-- ДИНАМИКА -->
         <div class="card">
             <div class="card-header">Динамика по месяцам</div>
             <div class="card-body">
-                <canvas id="trendChart" height="300"></canvas>
+                <div class="chart-wrap"><canvas id="trendChart"></canvas></div>
             </div>
         </div>
         
-        <!-- RFM + ПЛАТЕЖИ + ПРОГНОЗ -->
         <div class="grid grid-2">
             <div class="card">
                 <div class="card-header">RFM-анализ</div>
                 <div class="card-body">
                     <div class="rfm-row">
-                        <span class="rfm-label">Давность последнего заказа</span>
-                        <div class="rfm-dots">
-                            <div class="rfm-dot" :class="client.rfm.R >= 1 ? 'active' : ''"></div><div class="rfm-dot" :class="client.rfm.R >= 2 ? 'active' : ''"></div><div class="rfm-dot" :class="client.rfm.R >= 3 ? 'active' : ''"></div><div class="rfm-dot" :class="client.rfm.R >= 4 ? 'active' : ''"></div><div class="rfm-dot" :class="client.rfm.R >= 5 ? 'active' : ''"></div>
-                        </div>
+                        <span class="rfm-label">Давность заказа</span>
+                        <div class="rfm-dots"><div class="rfm-dot" :class="client.rfm.R >= 1 ? 'active' : ''"></div><div class="rfm-dot" :class="client.rfm.R >= 2 ? 'active' : ''"></div><div class="rfm-dot" :class="client.rfm.R >= 3 ? 'active' : ''"></div><div class="rfm-dot" :class="client.rfm.R >= 4 ? 'active' : ''"></div><div class="rfm-dot" :class="client.rfm.R >= 5 ? 'active' : ''"></div></div>
                         <span class="rfm-score" x-text="client.rfm.R + '/5'"></span>
                         <span class="rfm-text" x-text="rfmRText()"></span>
                     </div>
                     <div class="rfm-row">
                         <span class="rfm-label">Частота заказов</span>
-                        <div class="rfm-dots">
-                            <div class="rfm-dot" :class="client.rfm.F >= 1 ? 'active' : ''"></div><div class="rfm-dot" :class="client.rfm.F >= 2 ? 'active' : ''"></div><div class="rfm-dot" :class="client.rfm.F >= 3 ? 'active' : ''"></div><div class="rfm-dot" :class="client.rfm.F >= 4 ? 'active' : ''"></div><div class="rfm-dot" :class="client.rfm.F >= 5 ? 'active' : ''"></div>
-                        </div>
+                        <div class="rfm-dots"><div class="rfm-dot" :class="client.rfm.F >= 1 ? 'active' : ''"></div><div class="rfm-dot" :class="client.rfm.F >= 2 ? 'active' : ''"></div><div class="rfm-dot" :class="client.rfm.F >= 3 ? 'active' : ''"></div><div class="rfm-dot" :class="client.rfm.F >= 4 ? 'active' : ''"></div><div class="rfm-dot" :class="client.rfm.F >= 5 ? 'active' : ''"></div></div>
                         <span class="rfm-score" x-text="client.rfm.F + '/5'"></span>
                         <span class="rfm-text" x-text="rfmFText()"></span>
                     </div>
                     <div class="rfm-row">
-                        <span class="rfm-label">Доходность (средний чек)</span>
-                        <div class="rfm-dots">
-                            <div class="rfm-dot" :class="client.rfm.M >= 1 ? 'active' : ''"></div><div class="rfm-dot" :class="client.rfm.M >= 2 ? 'active' : ''"></div><div class="rfm-dot" :class="client.rfm.M >= 3 ? 'active' : ''"></div><div class="rfm-dot" :class="client.rfm.M >= 4 ? 'active' : ''"></div><div class="rfm-dot" :class="client.rfm.M >= 5 ? 'active' : ''"></div>
-                        </div>
+                        <span class="rfm-label">Средний чек</span>
+                        <div class="rfm-dots"><div class="rfm-dot" :class="client.rfm.M >= 1 ? 'active' : ''"></div><div class="rfm-dot" :class="client.rfm.M >= 2 ? 'active' : ''"></div><div class="rfm-dot" :class="client.rfm.M >= 3 ? 'active' : ''"></div><div class="rfm-dot" :class="client.rfm.M >= 4 ? 'active' : ''"></div><div class="rfm-dot" :class="client.rfm.M >= 5 ? 'active' : ''"></div></div>
                         <span class="rfm-score" x-text="client.rfm.M + '/5'"></span>
                         <span class="rfm-text" x-text="rfmMText()"></span>
                     </div>
                     <div class="rfm-row">
                         <span class="rfm-label">Платёжная дисциплина</span>
-                        <div class="rfm-dots">
-                            <div class="rfm-dot" :class="client.rfm.P >= 1 ? 'active' : ''"></div><div class="rfm-dot" :class="client.rfm.P >= 2 ? 'active' : ''"></div><div class="rfm-dot" :class="client.rfm.P >= 3 ? 'active' : ''"></div><div class="rfm-dot" :class="client.rfm.P >= 4 ? 'active' : ''"></div><div class="rfm-dot" :class="client.rfm.P >= 5 ? 'active' : ''"></div>
-                        </div>
+                        <div class="rfm-dots"><div class="rfm-dot" :class="client.rfm.P >= 1 ? 'active' : ''"></div><div class="rfm-dot" :class="client.rfm.P >= 2 ? 'active' : ''"></div><div class="rfm-dot" :class="client.rfm.P >= 3 ? 'active' : ''"></div><div class="rfm-dot" :class="client.rfm.P >= 4 ? 'active' : ''"></div><div class="rfm-dot" :class="client.rfm.P >= 5 ? 'active' : ''"></div></div>
                         <span class="rfm-score" x-text="client.rfm.P + '/5'"></span>
                         <span class="rfm-text" x-text="rfmPText()"></span>
                     </div>
                     <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border);">
-                        <span style="font-size: 13px; font-weight: 600;" x-text="'RFM: ' + client.rfm.R + '' + client.rfm.F + '' + client.rfm.M + '' + client.rfm.P"></span>
+                        <span style="font-size: 13px; font-weight: 600;" x-text="'RFMP: ' + client.rfm.R + '' + client.rfm.F + '' + client.rfm.M + '' + client.rfm.P"></span>
                         <span class="badge" :class="rfmBadge()" style="margin-left: 8px;" x-text="client.rfm.segment"></span>
                         <div style="font-size: 11px; color: var(--text2); margin-top: 4px;" x-text="rfmAdvice()"></div>
                     </div>
@@ -158,7 +149,6 @@
             </div>
         </div>
         
-        <!-- РИСКИ -->
         <div class="card">
             <div class="card-header">Риски</div>
             <div class="card-body">
@@ -175,7 +165,6 @@
             </div>
         </div>
         
-        <!-- МАРШРУТЫ -->
         <div class="card" x-show="client.routes && client.routes.length">
             <div class="card-header">Маршруты</div>
             <div class="card-body">
@@ -185,10 +174,7 @@
                         <template x-for="r in client.routes" :key="r.name">
                             <tr>
                                 <td x-text="r.name"></td><td x-text="r.count"></td>
-                                <td>
-                                    <div class="bar"><div class="bar-fill" style="background: var(--primary);" :style="'width:' + Math.max(r.share, 5) + '%'"></div></div>
-                                    <span style="font-size:10px;" x-text="r.share + '%'"></span>
-                                </td>
+                                <td><div class="bar"><div class="bar-fill" style="background: var(--primary);" :style="'width:' + Math.max(r.share, 5) + '%'"></div></div><span style="font-size:10px;" x-text="r.share + '%'"></span></td>
                             </tr>
                         </template>
                     </tbody>
@@ -215,13 +201,12 @@
             return {
                 searchId: '', client: null, loading: false, chartInstance: null,
                 
-                async init() {},
-                
-                async refresh() { this.client = null; if (this.searchId) await this.analyze(); },
-                
                 async analyze() {
-                    if (!this.searchId) return;
+                    if (!this.searchId || this.loading) return;
                     this.loading = true;
+                    this.client = null;
+                    if (this.chartInstance) { this.chartInstance.destroy(); this.chartInstance = null; }
+                    
                     try {
                         const r = await fetch(SCRIPT_URL + '?id=' + encodeURIComponent(this.searchId));
                         const orders = await r.json();
@@ -299,14 +284,14 @@
                 drawChart() {
                     if (!this.client?.monthly) return;
                     const canvas = document.getElementById('trendChart'); if (!canvas) return;
-                    const ctx = canvas.getContext('2d');
                     if (this.chartInstance) this.chartInstance.destroy();
+                    const ctx = canvas.getContext('2d');
                     this.chartInstance = new Chart(ctx, {
                         type: 'bar', data: { labels: this.client.monthly.map(m => m.month), datasets: [
                             { label: 'Сумма', data: this.client.monthly.map(m => m.sum), backgroundColor: '#2563eb', borderRadius: 4, yAxisID: 'y' },
                             { label: 'Заказов', data: this.client.monthly.map(m => m.count), type: 'line', borderColor: '#f59e0b', backgroundColor: '#f59e0b', tension: 0.3, pointRadius: 4, yAxisID: 'y1' }
                         ]},
-                        options: { plugins: { legend: { position: 'bottom' } }, scales: {
+                        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } }, scales: {
                             y: { type: 'linear', position: 'left', title: { display: true, text: 'Сумма' }, ticks: { callback: v => v/1000 + 'k' } },
                             y1: { type: 'linear', position: 'right', title: { display: true, text: 'Заказов' }, grid: { drawOnChartArea: false }, ticks: { stepSize: 1 } }
                         }}
@@ -317,7 +302,7 @@
                 rfmFText() { const v = this.client?.rfm?.F; return v >= 5 ? '10+ в месяц' : v >= 4 ? '5-9 в месяц' : v >= 3 ? '2-4 в месяц' : v >= 2 ? '1 в месяц' : 'реже раза в месяц'; },
                 rfmMText() { const v = this.client?.rfm?.M; return v >= 5 ? 'очень высокий' : v >= 4 ? 'высокий' : v >= 3 ? 'средний' : v >= 2 ? 'низкий' : 'минимальный'; },
                 rfmPText() { const v = this.client?.rfm?.P; return v >= 5 ? '95%+ оплат' : v >= 4 ? '80-95%' : v >= 3 ? '60-80%' : v >= 2 ? '30-60%' : '<30%'; },
-                rfmAdvice() { const s = this.client?.rfm?.segment; if (s === 'VIP') return 'Удерживать любой ценой. Предложить персонального менеджера.'; if (s === 'Лояльный') return 'Повышать средний чек. Предложить доп. услуги.'; if (s === 'Средний') return 'Стимулировать частоту заказов. Напомнить о себе.'; if (s === 'Редкий') return 'Реактивировать. Спецпредложение или звонок.'; return 'Выяснить причину ухода. Срочный контакт.'; },
+                rfmAdvice() { const s = this.client?.rfm?.segment; if (s === 'VIP') return 'Удерживать любой ценой.'; if (s === 'Лояльный') return 'Повышать средний чек.'; if (s === 'Средний') return 'Стимулировать частоту.'; if (s === 'Редкий') return 'Реактивировать.'; return 'Срочный контакт.'; },
                 rfmBadge() { const s = this.client?.rfm?.segment; if (s === 'VIP' || s === 'Лояльный') return 'badge-green'; if (s === 'Уходит' || s === 'Редкий') return 'badge-red'; return 'badge-yellow'; }
             }
         }
