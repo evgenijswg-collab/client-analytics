@@ -80,6 +80,12 @@
             cursor: not-allowed;
         }
 
+        .btn-secondary {
+            background: var(--white);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
         .main {
             max-width: 1200px;
             margin: 0 auto;
@@ -322,7 +328,9 @@
         </div>
     </header>
 
-         <!-- КАРТОЧКА -->
+    <main class="main" x-show="client">
+
+        <!-- КАРТОЧКА -->
         <div class="card">
             <div class="card-header" x-text="client.organization || 'Клиент'"></div>
             <div class="card-body">
@@ -538,7 +546,7 @@
     </div>
 
     <script>
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyljkhgyAtSM_AzRzvBL5dxMGUYCwTHddlhcmyM_L0uwV1MauUH6h3pJubQ4DsXT72nWw/exec';
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyYdsFbC9TGXvjdfTQ7tI7TD_ixYJNfM9bNJJCF6xjwoSqE5oRLGaxLjv7EYeT6eGDyQA/exec';
 
         function fmtMoney(val) {
             if (!val) return '—';
@@ -627,9 +635,8 @@
                     const prevFreq = older.length ? older.length / 3 : ordersPerMonth;
                     const freqChange = prevFreq ? Math.round((1 - currentFreq / prevFreq) * 100) : 0;
                     const checkChange = prevYearAvg ? Math.round((1 - avgCheck12m / prevYearAvg) * 100) : 0;
-                    const prevDSO = dso; // упрощённо
+                    const prevDSO = dso;
 
-                    // Сигналы
                     const signals = [];
                     if (missedIntervals >= 2) signals.push({ icon: '🔴', title: `Пропустил ${missedIntervals} цикла заказа`, detail: `Обычный интервал: ${normalInterval} дн. Последний заказ: ${lastDate.toLocaleDateString('ru-RU')} (${daysSinceLast} дн назад)`, action: 'Срочный звонок' });
                     if (freqChange > 30) signals.push({ icon: '🟡', title: `Частота упала на ${freqChange}%`, detail: `Было ${prevFreq.toFixed(1)} заказов/мес, стало ${currentFreq.toFixed(1)}`, action: 'Предложить спецусловия' });
@@ -645,7 +652,6 @@
                     else if (warn >= 1) { level = 'НИЗКИЙ'; color = 'text-warning'; }
                     else { level = 'МИНИМАЛЬНЫЙ'; color = 'text-green'; }
 
-                    // RFM
                     const rfm_R = daysSinceLast <= 7 ? 5 : daysSinceLast <= 14 ? 4 : daysSinceLast <= 30 ? 3 : daysSinceLast <= 60 ? 2 : 1;
                     const rfm_F = ordersPerMonth >= 10 ? 5 : ordersPerMonth >= 5 ? 4 : ordersPerMonth >= 2 ? 3 : ordersPerMonth >= 1 ? 2 : 1;
                     const maxCheck = Math.max(...amounts);
@@ -654,25 +660,21 @@
                     const segScore = rfm_R + rfm_F + rfm_M + rfm_P;
                     const segment = segScore >= 18 ? 'VIP' : segScore >= 14 ? 'Лояльный' : segScore >= 10 ? 'Средний' : segScore >= 6 ? 'Редкий' : 'Уходит';
 
-                    // Прогноз
                     const intervals = [];
                     for (let i = 1; i < orders.length; i++) intervals.push((new Date(orders[i].date) - new Date(orders[i - 1].date)) / 86400000);
                     const avgInterval = intervals.length ? Math.round(intervals.reduce((a, b) => a + b, 0) / intervals.length) : 14;
                     const forecastDate = new Date(lastDate); forecastDate.setDate(forecastDate.getDate() + avgInterval);
                     const recentAvg = recent.length ? recent.reduce((a, b) => a + (Number(b.amount) || 0), 0) / recent.length : avgCheck;
 
-                    // Маршруты
                     const routes = {};
                     orders.forEach(o => { const r = o.route || 'Не указан'; routes[r] = (routes[r] || 0) + 1; });
                     const topRoutes = Object.entries(routes).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([name, cnt]) => ({ name, count: cnt, share: Math.round(cnt / count * 100) }));
 
-                    // Графики
                     const monthly = {}, monthlyAvg = {}, monthlyCnt = {};
                     orders.forEach(o => { const d = new Date(o.date); const key = d.toLocaleString('ru-RU', { month: 'short', year: 'numeric' }); monthly[key] = (monthly[key] || 0) + (Number(o.amount) || 0); monthlyCnt[key] = (monthlyCnt[key] || 0) + 1; });
                     Object.keys(monthly).forEach(k => { monthlyAvg[k] = monthly[k] / monthlyCnt[k]; });
                     const monthlyArr = Object.keys(monthly).map(k => ({ month: k, sum: monthly[k], count: monthlyCnt[k] || 0, avg: Math.round(monthlyAvg[k]) }));
 
-                    // Средний чек для определения красных столбцов
                     const allAvgs = monthlyArr.map(m => m.avg);
                     const overallAvg = allAvgs.reduce((a, b) => a + b, 0) / allAvgs.length;
 
