@@ -367,10 +367,18 @@
                     const canvas = document.getElementById('trendChart'); if (!canvas) return;
                     if (this.chart1) this.chart1.destroy();
                     this.chart1 = new Chart(canvas.getContext('2d'), {
-                        type: 'bar', data: { labels: this.client.monthly.map(m => m.month), datasets: [
-                            { label: 'Сумма', data: this.client.monthly.map(m => m.sum), backgroundColor: '#2563eb', borderRadius: 4 }
-                        ]},
-                        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { ticks: { callback: v => v/1000 + 'k' } } } }
+                        type: 'bar', data: {
+                            labels: this.client.monthly.map(m => m.month), datasets: [
+                                { label: 'Сумма', data: this.client.monthly.map(m => m.sum), backgroundColor: '#2563eb', borderRadius: 4, yAxisID: 'y' },
+                                { label: 'Заказов', data: this.client.monthly.map(m => m.count), type: 'line', borderColor: '#f59e0b', backgroundColor: '#f59e0b', tension: 0.3, pointRadius: 3, yAxisID: 'y1' }
+                            ]
+                        },
+                        options: {
+                            responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } }, scales: {
+                                y: { type: 'linear', position: 'left', title: { display: true, text: 'Сумма' }, ticks: { callback: v => v / 1000 + 'k' } },
+                                y1: { type: 'linear', position: 'right', title: { display: true, text: 'Заказов' }, grid: { drawOnChartArea: false }, ticks: { stepSize: 1 } }
+                            }
+                        }
                     });
                 },
                 
