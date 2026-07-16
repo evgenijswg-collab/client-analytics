@@ -310,11 +310,11 @@
     <header class="header">
         <span class="header-title">Аналитический центр клиента</span>
         <div style="display: flex; gap: 10px; align-items: center;">
+            <a href="dashboard.html" class="btn btn-secondary" style="text-decoration: none;">Комплексная аналитика</a>
+            <a href="reports.html" class="btn btn-secondary" style="text-decoration: none;">Отчёты</a>
             <input type="text" class="input" x-model="searchId" @keyup.enter="analyze()" placeholder="ID контакта"
                 :disabled="loading">
-            <button class="btn btn-secondary" @click="refresh()" :disabled="loading">
-                Обновить
-            </button>
+            <button class="btn btn-secondary" @click="refresh()" :disabled="loading">Обновить</button>
             <button class="btn btn-primary" @click="analyze()" :disabled="loading || !searchId">
                 <span x-show="!loading">Анализ</span>
                 <span x-show="loading">Загрузка...</span>
@@ -323,6 +323,8 @@
     </header>
 
     <main class="main" x-show="client">
+        ...
+    </main>
 
         <!-- КАРТОЧКА -->
         <div class="card">
