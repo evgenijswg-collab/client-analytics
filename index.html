@@ -312,9 +312,9 @@
         <div style="display: flex; gap: 10px; align-items: center;">
             <input type="text" class="input" x-model="searchId" @keyup.enter="analyze()" placeholder="ID контакта"
                 :disabled="loading">
-                <button class="btn btn-secondary" @click="refresh()" :disabled="loading">
-                    Обновить
-                </button>
+            <button class="btn btn-secondary" @click="refresh()" :disabled="loading">
+                Обновить
+            </button>
             <button class="btn btn-primary" @click="analyze()" :disabled="loading || !searchId">
                 <span x-show="!loading">Анализ</span>
                 <span x-show="loading">Загрузка...</span>
@@ -576,11 +576,10 @@
                     if (this.chart1) { this.chart1.destroy(); this.chart1 = null; }
                     if (this.chart2) { this.chart2.destroy(); this.chart2 = null; }
                     const timestamp = new Date().getTime();
-                    const r = await fetch(SCRIPT_URL + '?refresh=1&_cb=' + timestamp);
-                    this.allData = await r.json();
+                    await fetch(SCRIPT_URL + '?refresh=1&_cb=' + timestamp);
                     if (this.searchId) await this.analyze();
                 },
-                
+
                 calcMetrics(orders) {
                     orders.sort((a, b) => new Date(a.date) - new Date(b.date));
                     const last = orders[orders.length - 1];
