@@ -25,10 +25,6 @@
         .grid-2 { grid-template-columns: 1fr 1fr; }
         .grid-3 { grid-template-columns: 1fr 1fr 1fr; }
         .grid-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
-        .grid-5 { grid-template-columns: 1fr 1fr 1fr 1fr 1fr; }
-        .metric { text-align: center; }
-        .metric-value { font-size: 24px; font-weight: 700; }
-        .metric-label { font-size: 11px; color: var(--text2); text-transform: uppercase; margin-top: 4px; }
         .text-green { color: var(--success); } .text-red { color: var(--danger); } .text-warning { color: var(--warning); }
         .badge { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: 500; }
         .badge-green { background: #ecfdf5; color: var(--success); }
@@ -37,7 +33,7 @@
         .bar { height: 8px; border-radius: 4px; background: #e5e7eb; margin-top: 4px; }
         .bar-fill { height: 100%; border-radius: 4px; }
         .route-bar { height: 20px; border-radius: 4px; background: #e5e7eb; }
-        .route-fill { height: 100%; border-radius: 4px; background: var(--primary); display: flex; align-items: center; padding-left: 8px; color: #fff; font-size: 11px; font-weight: 500; min-width: fit-content; }
+        .route-fill { height: 100%; border-radius: 4px; background: var(--primary); display: flex; align-items: center; padding-left: 8px; color: #fff; font-size: 11px; font-weight: 500; }
         .rfm-row { display: flex; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 1px solid #f0f1f3; }
         .rfm-row:last-child { border-bottom: none; }
         .rfm-label { width: 160px; font-size: 12px; color: var(--text2); }
@@ -49,6 +45,9 @@
         .empty { text-align: center; padding: 40px; color: var(--text2); }
         .chart-wrap { position: relative; height: 350px; }
         .chart-wrap canvas { width: 100% !important; height: 100% !important; }
+        .detail-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 12px; }
+        .detail-label { color: var(--text2); }
+        .detail-value { font-weight: 600; }
     </style>
 </head>
 <body x-data="app()">
@@ -66,30 +65,53 @@
     
     <main class="main" x-show="client">
         
+        <!-- КАРТОЧКА -->
         <div class="card">
             <div class="card-header" x-text="client.organization || 'Клиент'"></div>
             <div class="card-body">
-                <div class="grid grid-5">
-                    <div class="metric"><div class="metric-value" x-text="fmtMoney(client.total_revenue)"></div><div class="metric-label">Оборот</div></div>
-                    <div class="metric"><div class="metric-value" x-text="client.total_orders"></div><div class="metric-label">Сделок</div></div>
-                    <div class="metric"><div class="metric-value" x-text="fmtMoney(client.avg_check)"></div><div class="metric-label">Средний чек</div></div>
-                    <div class="metric"><div class="metric-value" x-text="client.months_active + ' мес'"></div><div class="metric-label">Стаж</div></div>
-                    <div class="metric"><div class="metric-value" :class="client.trend >= 0 ? 'text-green' : 'text-red'" x-text="(client.trend >= 0 ? '+' : '') + client.trend + '%'"></div><div class="metric-label">Тренд</div></div>
+                <div style="display: flex; gap: 40px; margin-bottom: 24px;">
+                    <div style="flex: 1; text-align: center; padding: 16px; background: #f8fafc; border-radius: 8px;">
+                        <div style="font-size: 32px; font-weight: 800;" x-text="fmtMoney(client.total_revenue)"></div>
+                        <div style="font-size: 12px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px;">Выручка за всё время</div>
+                    </div>
+                    <div style="flex: 1; text-align: center; padding: 16px; background: #f8fafc; border-radius: 8px;">
+                        <div style="font-size: 32px; font-weight: 800;" :class="client.churn_risk > 50 ? 'text-red' : client.churn_risk > 25 ? 'text-warning' : 'text-green'" x-text="client.churn_risk + '%'"></div>
+                        <div style="font-size: 12px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px;">Риск оттока</div>
+                    </div>
+                    <div style="flex: 1; text-align: center; padding: 16px; background: #f8fafc; border-radius: 8px;">
+                        <div style="font-size: 32px; font-weight: 800;" x-text="fmtMoney(client.potential_loss)"></div>
+                        <div style="font-size: 12px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px;">Под риском</div>
+                    </div>
+                    <div style="flex: 1; text-align: center; padding: 16px; background: #f8fafc; border-radius: 8px;">
+                        <div style="font-size: 32px; font-weight: 800;" :class="client.trend >= 0 ? 'text-green' : 'text-red'" x-text="(client.trend >= 0 ? '+' : '') + client.trend + '%'"></div>
+                        <div style="font-size: 12px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px;">Тренд</div>
+                    </div>
                 </div>
-                <div class="grid grid-4" style="margin-top: 16px;">
-                    <div class="metric"><div class="metric-value" x-text="client.client_type"></div><div class="metric-label">Тип клиента</div></div>
-                    <div class="metric"><div class="metric-value" x-text="client.manager"></div><div class="metric-label">Менеджер</div></div>
-                    <div class="metric"><div class="metric-value" x-text="(client.discount_percent || 0) + '%'"></div><div class="metric-label">Скидка</div></div>
-                    <div class="metric"><div class="metric-value" x-text="fmtMoney(client.run_rate) + '/год'"></div><div class="metric-label">Run Rate</div></div>
+                
+                <div style="display: flex; gap: 24px; padding-top: 16px; border-top: 1px solid var(--border);">
+                    <div style="flex: 1;">
+                        <div class="detail-row"><span class="detail-label">Выручка 2024</span><span class="detail-value" x-text="fmtMoney(client.revenue_2024)"></span></div>
+                        <div class="detail-row"><span class="detail-label">Средний чек (12 мес)</span><span class="detail-value" x-text="fmtMoney(client.avg_check_12m)"></span></div>
+                        <div class="detail-row"><span class="detail-label">Динамика чека</span><span :class="client.avg_check_trend >= 0 ? 'text-green' : 'text-red'" x-text="(client.avg_check_trend >= 0 ? '+' : '') + client.avg_check_trend + '%'"></span></div>
+                    </div>
+                    <div style="flex: 1;">
+                        <div class="detail-row"><span class="detail-label">Сделок</span><span class="detail-value" x-text="client.total_orders"></span></div>
+                        <div class="detail-row"><span class="detail-label">Стаж</span><span class="detail-value" x-text="client.months_active + ' мес'"></span></div>
+                        <div class="detail-row"><span class="detail-label">Run Rate (12 мес)</span><span class="detail-value" x-text="fmtMoney(client.run_rate_12m) + '/год'"></span></div>
+                    </div>
+                    <div style="flex: 1;">
+                        <div class="detail-row"><span class="detail-label">Тип клиента</span><span class="detail-value" x-text="client.client_type"></span></div>
+                        <div class="detail-row"><span class="detail-label">Менеджер</span><span class="detail-value" x-text="client.manager"></span></div>
+                        <div class="detail-row"><span class="detail-label">Скидка</span><span class="detail-value" x-text="(client.discount_percent || 0) + '%'"></span></div>
+                    </div>
                 </div>
             </div>
         </div>
         
+        <!-- ДИНАМИКА -->
         <div class="card">
             <div class="card-header">Динамика по месяцам</div>
-            <div class="card-body">
-                <div class="chart-wrap"><canvas id="trendChart"></canvas></div>
-            </div>
+            <div class="card-body"><div class="chart-wrap"><canvas id="trendChart"></canvas></div></div>
         </div>
         
         <div class="grid grid-2">
@@ -131,9 +153,9 @@
                     <div class="card-header">Платёжная дисциплина</div>
                     <div class="card-body">
                         <div class="grid grid-3">
-                            <div class="metric"><div class="metric-value" x-text="client.dso + ' дн'"></div><div class="metric-label">DSO</div></div>
-                            <div class="metric"><div class="metric-value" :class="client.paid_pct >= 90 ? 'text-green' : 'text-warning'" x-text="client.paid_pct + '%'"></div><div class="metric-label">Оплачено</div></div>
-                            <div class="metric"><div class="metric-value text-red" x-text="fmtMoney(client.debt)"></div><div class="metric-label">Долг</div></div>
+                            <div style="text-align: center;"><div style="font-size: 24px; font-weight: 700;" x-text="client.dso + ' дн'"></div><div style="font-size: 11px; color: var(--text2);">DSO</div></div>
+                            <div style="text-align: center;"><div style="font-size: 24px; font-weight: 700;" :class="client.paid_pct >= 90 ? 'text-green' : 'text-warning'" x-text="client.paid_pct + '%'"></div><div style="font-size: 11px; color: var(--text2);">Оплачено</div></div>
+                            <div style="text-align: center;"><div style="font-size: 24px; font-weight: 700;" class="text-red" x-text="fmtMoney(client.debt)"></div><div style="font-size: 11px; color: var(--text2);">Долг</div></div>
                         </div>
                     </div>
                 </div>
@@ -141,8 +163,8 @@
                     <div class="card-header">Прогноз</div>
                     <div class="card-body">
                         <div class="grid grid-2">
-                            <div class="metric"><div class="metric-value" x-text="client.forecast_date"></div><div class="metric-label">След. заказ</div></div>
-                            <div class="metric"><div class="metric-value" x-text="fmtMoney(client.forecast_amount)"></div><div class="metric-label">Сумма</div></div>
+                            <div style="text-align: center;"><div style="font-size: 24px; font-weight: 700;" x-text="client.forecast_date"></div><div style="font-size: 11px; color: var(--text2);">След. заказ</div></div>
+                            <div style="text-align: center;"><div style="font-size: 24px; font-weight: 700;" x-text="fmtMoney(client.forecast_amount)"></div><div style="font-size: 11px; color: var(--text2);">Сумма</div></div>
                         </div>
                     </div>
                 </div>
@@ -153,14 +175,14 @@
             <div class="card-header">Риски</div>
             <div class="card-body">
                 <div class="grid grid-4">
-                    <div class="metric">
-                        <div class="metric-value" :class="client.churn_risk > 50 ? 'text-red' : client.churn_risk > 25 ? 'text-warning' : 'text-green'" x-text="client.churn_risk + '%'"></div>
-                        <div class="metric-label">Риск оттока</div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 24px; font-weight: 700;" :class="client.churn_risk > 50 ? 'text-red' : client.churn_risk > 25 ? 'text-warning' : 'text-green'" x-text="client.churn_risk + '%'"></div>
+                        <div style="font-size: 11px; color: var(--text2);">Риск оттока</div>
                         <div class="bar"><div class="bar-fill" :style="'width:' + client.churn_risk + '%; background:' + (client.churn_risk > 50 ? 'var(--danger)' : client.churn_risk > 25 ? 'var(--warning)' : 'var(--success)')"></div></div>
                     </div>
-                    <div class="metric"><div class="metric-value" x-text="client.retention + '%'"></div><div class="metric-label">Удержание</div></div>
-                    <div class="metric"><div class="metric-value" :class="client.overdue_pct > 10 ? 'text-red' : 'text-green'" x-text="client.overdue_pct + '%'"></div><div class="metric-label">Просрочка</div></div>
-                    <div class="metric"><div class="metric-value text-red" x-text="fmtMoney(client.potential_loss)"></div><div class="metric-label">Под риском</div></div>
+                    <div style="text-align: center;"><div style="font-size: 24px; font-weight: 700;" x-text="client.retention + '%'"></div><div style="font-size: 11px; color: var(--text2);">Удержание</div></div>
+                    <div style="text-align: center;"><div style="font-size: 24px; font-weight: 700;" :class="client.overdue_pct > 10 ? 'text-red' : 'text-green'" x-text="client.overdue_pct + '%'"></div><div style="font-size: 11px; color: var(--text2);">Просрочка</div></div>
+                    <div style="text-align: center;"><div style="font-size: 24px; font-weight: 700;" class="text-red" x-text="fmtMoney(client.potential_loss)"></div><div style="font-size: 11px; color: var(--text2);">Под риском</div></div>
                 </div>
             </div>
         </div>
@@ -174,9 +196,7 @@
                             <span x-text="r.name"></span>
                             <span x-text="r.count + ' сделок (' + r.share + '%)'"></span>
                         </div>
-                        <div class="route-bar">
-                            <div class="route-fill" :style="'width:' + Math.max(r.share, 5) + '%'" x-text="r.share + '%'"></div>
-                        </div>
+                        <div class="route-bar"><div class="route-fill" :style="'width:' + Math.max(r.share, 5) + '%'" x-text="r.share + '%'"></div></div>
                     </div>
                 </template>
             </div>
@@ -203,10 +223,8 @@
                 
                 async analyze() {
                     if (!this.searchId || this.loading) return;
-                    this.loading = true;
-                    this.client = null;
+                    this.loading = true; this.client = null;
                     if (this.chartInstance) { this.chartInstance.destroy(); this.chartInstance = null; }
-                    
                     try {
                         const r = await fetch(SCRIPT_URL + '?id=' + encodeURIComponent(this.searchId));
                         if (!r.ok) throw new Error('HTTP ' + r.status);
@@ -214,7 +232,7 @@
                         if (!orders.length) { alert('Клиент не найден'); this.loading = false; return; }
                         this.client = this.calcMetrics(orders);
                         this.$nextTick(() => this.drawChart());
-                    } catch(e) { console.error(e); alert('Ошибка загрузки: ' + e.message); }
+                    } catch(e) { console.error(e); alert('Ошибка: ' + e.message); }
                     this.loading = false;
                 },
                 
@@ -224,46 +242,61 @@
                     const amounts = orders.map(o => Number(o.amount) || 0);
                     const total = amounts.reduce((a,b) => a+b, 0);
                     const count = orders.length;
-                    const avg = total / count;
                     const firstDate = new Date(orders[0].date);
                     const lastDate = new Date(last.date);
+                    const now = new Date();
                     const daysActive = Math.max(1, (lastDate - firstDate) / 86400000);
                     const monthsActive = Math.max(1, Math.round(daysActive / 30));
                     const ordersPerMonth = count / monthsActive;
-                    const now = new Date();
+                    const oneYearAgo = new Date(now.getFullYear() - 1, now.getMonth(), 1);
+                    const twoYearsAgo = new Date(now.getFullYear() - 2, now.getMonth(), 1);
                     const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth()-3, 1);
                     const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth()-6, 1);
+                    const last12m = orders.filter(o => new Date(o.date) >= oneYearAgo);
+                    const last12mSum = last12m.reduce((a,b) => a + (Number(b.amount)||0), 0);
+                    const prevYear = orders.filter(o => new Date(o.date) >= twoYearsAgo && new Date(o.date) < oneYearAgo);
+                    const prevYearSum = prevYear.reduce((a,b) => a + (Number(b.amount)||0), 0);
                     const recent = orders.filter(o => new Date(o.date) >= threeMonthsAgo);
                     const older = orders.filter(o => new Date(o.date) >= sixMonthsAgo && new Date(o.date) < threeMonthsAgo);
                     const recentSum = recent.reduce((a,b) => a + (Number(b.amount)||0), 0);
                     const olderSum = older.reduce((a,b) => a + (Number(b.amount)||0), 0);
+                    const year2024 = orders.filter(o => new Date(o.date).getFullYear() === 2024);
+                    const revenue2024 = year2024.reduce((a,b) => a + (Number(b.amount)||0), 0);
+                    const avgCheck = total / count;
+                    const avgCheck12m = last12m.length ? last12mSum / last12m.length : avgCheck;
+                    const prevYearAvg = prevYear.length ? prevYearSum / prevYear.length : avgCheck;
+                    const avgCheckTrend = prevYearAvg ? Math.round((avgCheck12m / prevYearAvg - 1) * 100) : 0;
+                    const runRateTotal = total / (daysActive / 365);
+                    const last12mDays = last12m.length ? Math.max(1, (now - new Date(last12m[0].date)) / 86400000) : 1;
+                    const runRate12m = last12mSum / (last12mDays / 365);
                     const trend = olderSum ? Math.round((recentSum/olderSum - 1) * 100) : 0;
-                    const runRate = recentSum ? (recentSum / 3) * 12 : total;
+                    const unpaid = orders.filter(o => o.payment_status !== 'оплачено');
+                    const debt = unpaid.reduce((a,b) => a + (Number(b.amount)||0), 0);
+                    const dso = last12mSum ? Math.round((debt / last12mSum) * 365) : 0;
+                    const paidPct = Math.round((count - unpaid.length) / count * 100);
+                    const overdue = orders.filter(o => { if (o.payment_status === 'оплачено') return false; return (now - new Date(o.date)) / 86400000 > 30; });
+                    const overduePct = Math.round(overdue.length / count * 100);
+                    const overdueSum = overdue.reduce((a,b) => a + (Number(b.amount)||0), 0);
+                    const potentialLoss = debt + overdueSum;
                     const daysSinceLast = Math.round((now - lastDate) / 86400000);
                     const rfm_R = daysSinceLast <= 7 ? 5 : daysSinceLast <= 14 ? 4 : daysSinceLast <= 30 ? 3 : daysSinceLast <= 60 ? 2 : 1;
                     const rfm_F = ordersPerMonth >= 10 ? 5 : ordersPerMonth >= 5 ? 4 : ordersPerMonth >= 2 ? 3 : ordersPerMonth >= 1 ? 2 : 1;
                     const maxCheck = Math.max(...amounts);
-                    const rfm_M = avg >= maxCheck*0.8 ? 5 : avg >= maxCheck*0.5 ? 4 : avg >= maxCheck*0.3 ? 3 : avg >= maxCheck*0.1 ? 2 : 1;
-                    const paid = orders.filter(o => o.payment_status === 'оплачено' && o.payment_date);
-                    const dsoDays = paid.map(o => (new Date(o.payment_date) - new Date(o.date)) / 86400000);
-                    const dso = dsoDays.length ? Math.round(dsoDays.reduce((a,b) => a+b, 0) / dsoDays.length) : 0;
-                    const unpaid = orders.filter(o => o.payment_status !== 'оплачено');
-                    const paidPct = Math.round((count - unpaid.length) / count * 100);
-                    const debt = unpaid.reduce((a,b) => a + (Number(b.amount)||0), 0);
+                    const rfm_M = avgCheck12m >= maxCheck*0.8 ? 5 : avgCheck12m >= maxCheck*0.5 ? 4 : avgCheck12m >= maxCheck*0.3 ? 3 : avgCheck12m >= maxCheck*0.1 ? 2 : 1;
                     const rfm_P = paidPct >= 95 ? 5 : paidPct >= 80 ? 4 : paidPct >= 60 ? 3 : paidPct >= 30 ? 2 : 1;
+                    const segScore = rfm_R + rfm_F + rfm_M + rfm_P;
+                    const segment = segScore >= 18 ? 'VIP' : segScore >= 14 ? 'Лояльный' : segScore >= 10 ? 'Средний' : segScore >= 6 ? 'Редкий' : 'Уходит';
                     let churn = 0;
                     if (daysSinceLast > 60) churn += 30; else if (daysSinceLast > 30) churn += 15;
                     if (trend < -20) churn += 25; else if (trend < 0) churn += 10;
                     if (dso > 30) churn += 20; else if (dso > 15) churn += 10;
-                    if (unpaid.length / count > 0.1) churn += 15;
+                    if (overduePct > 10) churn += 15;
                     churn = Math.min(100, churn);
-                    const segScore = rfm_R + rfm_F + rfm_M + rfm_P;
-                    const segment = segScore >= 18 ? 'VIP' : segScore >= 14 ? 'Лояльный' : segScore >= 10 ? 'Средний' : segScore >= 6 ? 'Редкий' : 'Уходит';
                     const intervals = [];
                     for (let i = 1; i < orders.length; i++) intervals.push((new Date(orders[i].date) - new Date(orders[i-1].date)) / 86400000);
                     const avgInterval = intervals.length ? Math.round(intervals.reduce((a,b) => a+b, 0) / intervals.length) : 14;
                     const forecastDate = new Date(lastDate); forecastDate.setDate(forecastDate.getDate() + avgInterval);
-                    const recentAvg = recent.length ? recent.reduce((a,b) => a+(Number(b.amount)||0),0) / recent.length : avg;
+                    const recentAvg = recent.length ? recent.reduce((a,b) => a+(Number(b.amount)||0),0) / recent.length : avgCheck;
                     const routes = {};
                     orders.forEach(o => { const r = o.route || 'Не указан'; routes[r] = (routes[r] || 0) + 1; });
                     const topRoutes = Object.entries(routes).sort((a,b) => b[1] - a[1]).slice(0,5).map(([name, cnt]) => ({ name, count: cnt, share: Math.round(cnt/count*100) }));
@@ -272,11 +305,12 @@
                     const monthlyArr = Object.keys(monthly).map(k => ({ month: k, sum: monthly[k], count: monthlyCnt[k] || 0 }));
                     return {
                         organization: last.organization || 'Клиент', client_type: last.client_type || '—', manager: last.manager || '—',
-                        discount_percent: last.discount_percent || 0, total_revenue: total, total_orders: count, avg_check: avg,
-                        months_active: monthsActive, trend, run_rate: runRate,
+                        discount_percent: last.discount_percent || 0, total_revenue: total, revenue_2024: revenue2024, total_orders: count,
+                        avg_check_12m: avgCheck12m, avg_check_trend: avgCheckTrend, months_active: monthsActive, trend,
+                        run_rate_12m: runRate12m, run_rate_total: runRateTotal,
                         rfm: { R: rfm_R, F: rfm_F, M: rfm_M, P: rfm_P, segment },
-                        dso, paid_pct: paidPct, debt, overdue_pct: Math.round(unpaid.length / count * 100),
-                        churn_risk: churn, retention: Math.round((1 - churn/100) * 100), potential_loss: total * (churn/100),
+                        dso, paid_pct: paidPct, debt, overdue_pct: overduePct, overdue_sum: overdueSum,
+                        churn_risk: churn, retention: Math.round((1 - churn/100) * 100), potential_loss: potentialLoss,
                         forecast_date: forecastDate.toLocaleDateString('ru-RU'), forecast_amount: recentAvg * (1 + trend/100),
                         routes: topRoutes, monthly: monthlyArr
                     };
@@ -290,7 +324,7 @@
                     this.chartInstance = new Chart(ctx, {
                         type: 'bar', data: { labels: this.client.monthly.map(m => m.month), datasets: [
                             { label: 'Сумма', data: this.client.monthly.map(m => m.sum), backgroundColor: '#2563eb', borderRadius: 4, yAxisID: 'y' },
-                            { label: 'Заказов', data: this.client.monthly.map(m => m.count), type: 'line', borderColor: '#f59e0b', backgroundColor: '#f59e0b', tension: 0.3, pointRadius: 4, yAxisID: 'y1' }
+                            { label: 'Заказов', data: this.client.monthly.map(m => m.count), type: 'line', borderColor: '#f59e0b', tension: 0.3, pointRadius: 4, yAxisID: 'y1' }
                         ]},
                         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } }, scales: {
                             y: { type: 'linear', position: 'left', title: { display: true, text: 'Сумма' }, ticks: { callback: v => v/1000 + 'k' } },
@@ -300,9 +334,9 @@
                 },
                 
                 rfmRText() { const v = this.client?.rfm?.R; return v >= 5 ? 'сегодня/вчера' : v >= 4 ? 'до 7 дней' : v >= 3 ? 'до 30 дней' : v >= 2 ? 'до 2 мес' : 'более 2 мес'; },
-                rfmFText() { const v = this.client?.rfm?.F; return v >= 5 ? '10+ в месяц' : v >= 4 ? '5-9 в месяц' : v >= 3 ? '2-4 в месяц' : v >= 2 ? '1 в месяц' : 'реже раза в месяц'; },
+                rfmFText() { const v = this.client?.rfm?.F; return v >= 5 ? '10+ в месяц' : v >= 4 ? '5-9' : v >= 3 ? '2-4' : v >= 2 ? '1 в месяц' : '<1'; },
                 rfmMText() { const v = this.client?.rfm?.M; return v >= 5 ? 'очень высокий' : v >= 4 ? 'высокий' : v >= 3 ? 'средний' : v >= 2 ? 'низкий' : 'минимальный'; },
-                rfmPText() { const v = this.client?.rfm?.P; return v >= 5 ? '95%+ оплат' : v >= 4 ? '80-95%' : v >= 3 ? '60-80%' : v >= 2 ? '30-60%' : '<30%'; },
+                rfmPText() { const v = this.client?.rfm?.P; return v >= 5 ? '95%+' : v >= 4 ? '80-95%' : v >= 3 ? '60-80%' : v >= 2 ? '30-60%' : '<30%'; },
                 rfmAdvice() { const s = this.client?.rfm?.segment; if (s === 'VIP') return 'Удерживать любой ценой.'; if (s === 'Лояльный') return 'Повышать средний чек.'; if (s === 'Средний') return 'Стимулировать частоту.'; if (s === 'Редкий') return 'Реактивировать.'; return 'Срочный контакт.'; },
                 rfmBadge() { const s = this.client?.rfm?.segment; if (s === 'VIP' || s === 'Лояльный') return 'badge-green'; if (s === 'Уходит' || s === 'Редкий') return 'badge-red'; return 'badge-yellow'; }
             }
