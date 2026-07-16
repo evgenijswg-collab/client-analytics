@@ -12,6 +12,10 @@
         body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); font-size: 13px; }
         .header { background: var(--white); border-bottom: 1px solid var(--border); padding: 0 24px; height: 56px; display: flex; align-items: center; justify-content: space-between; }
         .header-title { font-size: 15px; font-weight: 600; }
+        .btn { padding: 7px 14px; border: none; border-radius: 5px; font-size: 12px; font-weight: 500; cursor: pointer; }
+        .btn-primary { background: var(--primary); color: #fff; }
+        .btn-secondary { background: var(--white); color: var(--text); border: 1px solid var(--border); }
+        .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
         .main { max-width: 1400px; margin: 0 auto; padding: 20px 24px; }
         .card { background: var(--white); border: 1px solid var(--border); border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,.06); margin-bottom: 20px; }
         .card-header { padding: 12px 16px; border-bottom: 1px solid var(--border); font-weight: 600; font-size: 14px; display: flex; justify-content: space-between; align-items: center; }
@@ -48,7 +52,13 @@
     
     <header class="header">
         <span class="header-title">Комплексная аналитика</span>
-        <span style="font-size: 11px; color: var(--text2);">Данные по август 2023</span>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <span style="font-size: 11px; color: var(--text2);">Данные по август 2023</span>
+            <button class="btn btn-secondary" @click="refresh()" :disabled="loading">
+                <span x-show="!loading">Обновить</span>
+                <span x-show="loading">Загрузка...</span>
+            </button>
+        </div>
     </header>
     
     <main class="main" x-show="!loading">
@@ -58,13 +68,12 @@
             <div class="kpi"><div class="kpi-value" x-text="kpi.totalClients"></div><div class="kpi-label">Всего клиентов</div></div>
             <div class="kpi"><div class="kpi-value" x-text="kpi.activeClients"></div><div class="kpi-label">Активных (авг 2023)</div></div>
             <div class="kpi"><div class="kpi-value" x-text="fmtMoney(kpi.totalRevenue)"></div><div class="kpi-label">Общая выручка</div></div>
-            <div class="kpi"><div class="kpi-value" x-text="fmtMoney(kpi.avgCheck)"></div><div class="kpi-label">Средний чек</div></div>
+            <div class="kpi"><div class="kpi-value" x-text="fmtMoney(kpi.avgCheckAll)"></div><div class="kpi-label">Ср. чек (всё время)</div></div>
+            <div class="kpi"><div class="kpi-value" :class="kpi.avgCheckMonth > kpi.avgCheckAll ? 'text-green' : 'text-red'" x-text="fmtMoney(kpi.avgCheckMonth)"></div><div class="kpi-label">Ср. чек (авг 2023)</div></div>
             <div class="kpi"><div class="kpi-value text-red" x-text="kpi.riskClients"></div><div class="kpi-label">В зоне риска</div></div>
-            <div class="kpi"><div class="kpi-value text-red" x-text="fmtMoney(kpi.potentialLoss)"></div><div class="kpi-label">Под риском</div></div>
         </div>
         
         <div class="grid grid-2">
-            <!-- ДИНАМИКА ВЫРУЧКИ -->
             <div class="card">
                 <div class="card-header">
                     Динамика выручки
@@ -76,8 +85,6 @@
                 </div>
                 <div class="card-body"><div class="chart-wrap"><canvas id="revenueChart"></canvas></div></div>
             </div>
-            
-            <!-- СЕГМЕНТЫ -->
             <div class="card">
                 <div class="card-header">Клиенты по сегментам</div>
                 <div class="card-body">
@@ -92,7 +99,6 @@
         </div>
         
         <div class="grid grid-2">
-            <!-- ТОП-10 -->
             <div class="card">
                 <div class="card-header">
                     Топ-10 клиентов
@@ -103,8 +109,6 @@
                 </div>
                 <div class="card-body"><div class="chart-wrap-small"><canvas id="topChart"></canvas></div></div>
             </div>
-            
-            <!-- МАРШРУТЫ -->
             <div class="card">
                 <div class="card-header">
                     Популярные маршруты
@@ -114,6 +118,30 @@
                     </div>
                 </div>
                 <div class="card-body"><div class="chart-wrap-small"><canvas id="routeChart"></canvas></div></div>
+            </div>
+        </div>
+        
+        <!-- ПРИЧИНЫ ОТКАЗОВ -->
+        <div class="card">
+            <div class="card-header">Причины отказов</div>
+            <div class="card-body">
+                <div class="grid grid-2">
+                    <div><div class="chart-wrap-small"><canvas id="cancelChart"></canvas></div></div>
+                    <div style="overflow-x: auto;">
+                        <table>
+                            <thead><tr><th>Причина</th><th>Сделок</th><th>Сумма потерь</th><th>Доля</th></tr></thead>
+                            <tbody>
+                                <template x-for="c in cancelReasons" :key="c.reason">
+                                    <tr>
+                                        <td x-text="c.reason"></td><td x-text="c.count"></td>
+                                        <td class="text-red" x-text="fmtMoney(c.sum)"></td>
+                                        <td><div class="bar"><div class="bar-fill" :style="'width:' + c.pct + '%; background: var(--danger);'"></div></div><span style="font-size:10px;" x-text="c.pct + '%'"></span></td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
         
@@ -159,23 +187,30 @@
             return num.toLocaleString('ru-RU') + ' ₽';
         }
         
+        const MONTHS = ['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+        
         function app() {
             return {
-                loading: true, allData: [], clients: [], kpi: {}, segments: [],
+                loading: true, allData: [], clients: [], kpi: {}, segments: [], cancelReasons: [],
                 revFilter: 'all', segFilter: '', topFilter: 'revenue', routeFilter: 'count', riskTableFilter: 'all',
-                chartRev: null, chartSeg: null, chartTop: null, chartRoute: null,
+                chartRev: null, chartSeg: null, chartTop: null, chartRoute: null, chartCancel: null,
                 
-                async init() {
+                async init() { await this.loadData(); },
+                
+                async loadData(refresh = false) {
+                    this.loading = true;
                     try {
-                        const r = await fetch(SCRIPT_URL);
+                        const url = SCRIPT_URL + (refresh ? '?refresh=1' : '');
+                        const r = await fetch(url);
                         this.allData = await r.json();
                         this.buildAll();
                     } catch(e) { console.error(e); }
                     this.loading = false;
                 },
                 
+                async refresh() { await this.loadData(true); },
+                
                 buildAll() {
-                    // Группировка по contact_id
                     const map = {};
                     this.allData.forEach(o => {
                         const id = String(o.contact_id || '0');
@@ -197,7 +232,6 @@
                         const now = new Date(lastDate);
                         const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth()-3, 1);
                         const recent = orders.filter(o => new Date(o.date) >= threeMonthsAgo);
-                        const recentSum = recent.reduce((a,b) => a + (Number(b.amount)||0), 0);
                         const avgCheck = total / count;
                         const unpaid = orders.filter(o => o.payment_status !== 'оплачено');
                         const debt = unpaid.reduce((a,b) => a + (Number(b.amount)||0), 0);
@@ -210,8 +244,6 @@
                         const normalInterval = count > 1 ? Math.round(daysActive / (count - 1)) : 30;
                         const missedIntervals = Math.round(daysSinceLast / normalInterval);
                         const paidPct = Math.round((count - unpaid.length) / count * 100);
-                        
-                        // RFM
                         const rfm_R = daysSinceLast <= 7 ? 5 : daysSinceLast <= 14 ? 4 : daysSinceLast <= 30 ? 3 : daysSinceLast <= 60 ? 2 : 1;
                         const rfm_F = ordersPerMonth >= 10 ? 5 : ordersPerMonth >= 5 ? 4 : ordersPerMonth >= 2 ? 3 : ordersPerMonth >= 1 ? 2 : 1;
                         const maxCheck = Math.max(...amounts);
@@ -219,8 +251,6 @@
                         const rfm_P = paidPct >= 95 ? 5 : paidPct >= 80 ? 4 : paidPct >= 60 ? 3 : paidPct >= 30 ? 2 : 1;
                         const segScore = rfm_R + rfm_F + rfm_M + rfm_P;
                         const segment = segScore >= 18 ? 'VIP' : segScore >= 14 ? 'Лояльный' : segScore >= 10 ? 'Средний' : segScore >= 6 ? 'Редкий' : 'Уходит';
-                        
-                        // Сигналы
                         const signals = [];
                         let level = 'НОРМА';
                         if (missedIntervals >= 2) { signals.push('Пропал'); level = 'КРИТИЧЕСКИЙ'; }
@@ -229,27 +259,48 @@
                         const loss = debt + overdue.reduce((a,b) => a + (Number(b.amount)||0), 0);
                         const action = level === 'КРИТИЧЕСКИЙ' ? 'Срочный звонок' : level === 'СРЕДНИЙ' ? 'Контроль оплаты' : '—';
                         const isActive = new Date(last.date).getFullYear() === 2023 && new Date(last.date).getMonth() === 7;
+                        const monthOrders = orders.filter(o => { const d = new Date(o.date); return d.getFullYear() === 2023 && d.getMonth() === 7; });
+                        const monthSum = monthOrders.reduce((a,b) => a + (Number(b.amount)||0), 0);
+                        const monthAvgCheck = monthOrders.length ? monthSum / monthOrders.length : 0;
                         
-                        return { id, name: last.organization || 'Клиент ' + id, manager: last.manager || '—', total, count, avgCheck, segment, level, signals, loss, action, isActive, orders, recentSum, client_type: last.client_type };
+                        return { id, name: last.organization || 'Клиент ' + id, manager: last.manager || '—', total, count, avgCheck, segment, level, signals, loss, action, isActive, orders, monthAvgCheck, client_type: last.client_type };
                     });
                     
-                    // KPI
                     const activeClients = this.clients.filter(c => c.isActive);
+                    const allAvgCheck = Math.round(this.clients.reduce((a,b) => a + b.total, 0) / this.clients.reduce((a,b) => a + b.count, 0));
+                    const monthTotalCheck = activeClients.reduce((a,b) => a + b.monthAvgCheck * b.orders.filter(o => { const d = new Date(o.date); return d.getFullYear() === 2023 && d.getMonth() === 7; }).length, 0);
+                    const monthTotalOrders = activeClients.reduce((a,b) => a + b.orders.filter(o => { const d = new Date(o.date); return d.getFullYear() === 2023 && d.getMonth() === 7; }).length, 0);
+                    const avgCheckMonth = monthTotalOrders ? Math.round(monthTotalCheck / monthTotalOrders) : 0;
+                    
                     this.kpi = {
                         totalClients: this.clients.length,
                         activeClients: activeClients.length,
                         totalRevenue: this.clients.reduce((a,b) => a + b.total, 0),
-                        avgCheck: Math.round(this.clients.reduce((a,b) => a + b.total, 0) / this.clients.length),
+                        avgCheckAll: allAvgCheck,
+                        avgCheckMonth: avgCheckMonth,
                         riskClients: this.clients.filter(c => c.level !== 'НОРМА').length,
                         potentialLoss: this.clients.filter(c => c.level !== 'НОРМА').reduce((a,b) => a + b.loss, 0)
                     };
                     
-                    // Сегменты
                     const segMap = {};
                     this.clients.forEach(c => { segMap[c.segment] = (segMap[c.segment] || 0) + 1; });
                     this.segments = Object.entries(segMap).map(([name, count]) => ({ name, count }));
                     
-                    this.$nextTick(() => { this.drawRevenueChart(); this.drawSegmentChart(); this.drawTopChart(); this.drawRouteChart(); });
+                    // Причины отказов
+                    const cancelMap = {};
+                    this.allData.forEach(o => {
+                        const reason = o.cancel_reason;
+                        if (!reason) return;
+                        if (!cancelMap[reason]) cancelMap[reason] = { count: 0, sum: 0 };
+                        cancelMap[reason].count++;
+                        cancelMap[reason].sum += Number(o.amount) || 0;
+                    });
+                    const totalCancel = Object.values(cancelMap).reduce((a,b) => a + b.count, 0);
+                    this.cancelReasons = Object.entries(cancelMap).map(([reason, data]) => ({
+                        reason, count: data.count, sum: data.sum, pct: Math.round(data.count / totalCancel * 100)
+                    })).sort((a,b) => b.count - a.count);
+                    
+                    this.$nextTick(() => { this.drawRevenueChart(); this.drawSegmentChart(); this.drawTopChart(); this.drawRouteChart(); this.drawCancelChart(); });
                 },
                 
                 drawRevenueChart() {
@@ -257,8 +308,11 @@
                     if (this.chartRev) this.chartRev.destroy();
                     const monthly = {};
                     const filtered = this.revFilter === 'new' ? this.clients.filter(c => c.client_type?.includes('Новый')) : this.revFilter === 'regular' ? this.clients.filter(c => c.client_type === 'Постоянный') : this.clients;
-                    filtered.forEach(c => c.orders.forEach(o => { const d = new Date(o.date); const k = d.toLocaleString('ru-RU', { month: 'short', year: 'numeric' }); monthly[k] = (monthly[k] || 0) + (Number(o.amount) || 0); }));
-                    const data = Object.entries(monthly).map(([m, s]) => ({ month: m, sum: s }));
+                    filtered.forEach(c => c.orders.forEach(o => { const d = new Date(o.date); const k = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0'); monthly[k] = (monthly[k] || 0) + (Number(o.amount) || 0); }));
+                    const data = Object.entries(monthly).sort((a,b) => a[0].localeCompare(b[0])).map(([m, s]) => {
+                        const [y, mo] = m.split('-');
+                        return { month: MONTHS[parseInt(mo)-1] + ' ' + y, sum: s };
+                    });
                     this.chartRev = new Chart(canvas.getContext('2d'), { type: 'bar', data: { labels: data.map(d => d.month), datasets: [{ data: data.map(d => d.sum), backgroundColor: '#2563eb', borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { ticks: { callback: v => v/1e6 + 'M' } } } } });
                 },
                 
@@ -272,7 +326,8 @@
                     const canvas = document.getElementById('topChart'); if (!canvas) return;
                     if (this.chartTop) this.chartTop.destroy();
                     const sorted = this.topFilter === 'revenue' ? [...this.clients].sort((a,b) => b.total - a.total).slice(0,10) : [...this.clients].filter(c => c.level !== 'НОРМА').sort((a,b) => b.loss - a.loss).slice(0,10);
-                    this.chartTop = new Chart(canvas.getContext('2d'), { type: 'bar', indexAxis: 'y', data: { labels: sorted.map(c => c.name.substring(0,30)), datasets: [{ data: sorted.map(c => this.topFilter === 'revenue' ? c.total : c.loss), backgroundColor: this.topFilter === 'revenue' ? '#2563eb' : '#dc2626', borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { callback: v => v/1e6 + 'M' } } } } });
+                    const names = sorted.map(c => c.name.length > 40 ? c.name.substring(0,40) + '...' : c.name);
+                    this.chartTop = new Chart(canvas.getContext('2d'), { type: 'bar', indexAxis: 'y', data: { labels: names, datasets: [{ data: sorted.map(c => this.topFilter === 'revenue' ? c.total : c.loss), backgroundColor: this.topFilter === 'revenue' ? '#2563eb' : '#dc2626', borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => fmtMoney(ctx.raw) } } }, scales: { x: { ticks: { callback: v => v/1e6 + 'M' } } } } });
                 },
                 
                 drawRouteChart() {
@@ -281,7 +336,15 @@
                     const routes = {};
                     this.allData.forEach(o => { const r = o.route || 'Не указан'; routes[r] = (routes[r] || 0) + (this.routeFilter === 'sum' ? (Number(o.amount)||0) : 1); });
                     const sorted = Object.entries(routes).sort((a,b) => b[1] - a[1]).slice(0,10);
-                    this.chartRoute = new Chart(canvas.getContext('2d'), { type: 'bar', indexAxis: 'y', data: { labels: sorted.map(([n]) => n.substring(0,30)), datasets: [{ data: sorted.map(([,v]) => v), backgroundColor: '#2563eb', borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
+                    const names = sorted.map(([n]) => n.length > 35 ? n.substring(0,35) + '...' : n);
+                    this.chartRoute = new Chart(canvas.getContext('2d'), { type: 'bar', indexAxis: 'y', data: { labels: names, datasets: [{ data: sorted.map(([,v]) => v), backgroundColor: '#2563eb', borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => this.routeFilter === 'sum' ? fmtMoney(ctx.raw) : ctx.raw } } } } });
+                },
+                
+                drawCancelChart() {
+                    const canvas = document.getElementById('cancelChart'); if (!canvas) return;
+                    if (this.chartCancel) this.chartCancel.destroy();
+                    const top = this.cancelReasons.slice(0, 8);
+                    this.chartCancel = new Chart(canvas.getContext('2d'), { type: 'bar', indexAxis: 'y', data: { labels: top.map(c => c.reason.length > 30 ? c.reason.substring(0,30) + '...' : c.reason), datasets: [{ data: top.map(c => c.count), backgroundColor: '#dc2626', borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
                 },
                 
                 filteredRiskTable() {
@@ -292,8 +355,7 @@
                     return list;
                 },
                 
-                filterTable() { /* already reactive */ },
-                
+                filterTable() {},
                 fmtMoney(val) { return fmtMoney(val); }
             }
         }
