@@ -200,11 +200,12 @@
                 async loadData(refresh = false) {
                     this.loading = true;
                     try {
-                        const url = SCRIPT_URL + (refresh ? '?refresh=1' : '');
+                        const timestamp = new Date().getTime();
+                        const url = SCRIPT_URL + (refresh ? '?refresh=1&_cb=' + timestamp : '?_cb=' + timestamp);
                         const r = await fetch(url);
                         this.allData = await r.json();
                         this.buildAll();
-                    } catch(e) { console.error(e); }
+                    } catch (e) { console.error(e); }
                     this.loading = false;
                 },
                 
