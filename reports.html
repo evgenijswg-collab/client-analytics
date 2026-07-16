@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ru">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,76 +8,277 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root { --bg: #f5f6f8; --white: #fff; --border: #e2e5eb; --text: #1a1a1a; --text2: #6b7280; --primary: #2563eb; --danger: #dc2626; --warning: #d97706; --success: #059669; }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); font-size: 13px; }
-        .header { background: var(--white); border-bottom: 1px solid var(--border); padding: 0 24px; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 10; }
-        .header-title { font-size: 15px; font-weight: 600; }
-        .btn { padding: 7px 14px; border: none; border-radius: 5px; font-size: 12px; font-weight: 500; cursor: pointer; }
-        .btn-primary { background: var(--primary); color: #fff; }
-        .btn-secondary { background: var(--white); color: var(--text); border: 1px solid var(--border); }
-        .btn-tab { padding: 6px 12px; border: 1px solid var(--border); border-radius: 4px; font-size: 11px; cursor: pointer; background: var(--white); white-space: nowrap; }
-        .btn-tab.active { background: var(--primary); color: #fff; border-color: var(--primary); }
-        .main { max-width: 1400px; margin: 0 auto; padding: 20px 24px; }
-        .card { background: var(--white); border: 1px solid var(--border); border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,.06); margin-bottom: 20px; }
-        .card-header { padding: 12px 16px; border-bottom: 1px solid var(--border); font-weight: 600; font-size: 14px; display: flex; justify-content: space-between; align-items: center; }
-        .card-body { padding: 16px; }
-        .grid { display: grid; gap: 20px; }
-        .grid-2 { grid-template-columns: 1fr 1fr; }
-        .grid-3 { grid-template-columns: 1fr 1fr 1fr; }
-        .grid-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
-        .kpi { text-align: center; padding: 12px; background: #f8fafc; border-radius: 6px; }
-        .kpi-value { font-size: 22px; font-weight: 700; }
-        .kpi-label { font-size: 10px; color: var(--text2); text-transform: uppercase; margin-top: 2px; }
-        .text-green { color: var(--success); } .text-red { color: var(--danger); } .text-warning { color: var(--warning); }
-        .chart-wrap { position: relative; height: 300px; }
-        .chart-wrap canvas { width: 100% !important; height: 100% !important; }
-        table { width: 100%; border-collapse: collapse; font-size: 11px; }
-        th { text-align: left; padding: 6px 8px; font-size: 10px; font-weight: 600; color: var(--text2); text-transform: uppercase; border-bottom: 2px solid var(--border); }
-        td { padding: 6px 8px; border-bottom: 1px solid #f0f1f3; }
-        .bar { height: 8px; border-radius: 4px; background: #e5e7eb; margin-top: 2px; }
-        .bar-fill { height: 100%; border-radius: 4px; }
-        .empty { text-align: center; padding: 40px; color: var(--text2); }
-        .tabs { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 16px; }
+        :root {
+            --bg: #f5f6f8;
+            --white: #fff;
+            --border: #e2e5eb;
+            --text: #1a1a1a;
+            --text2: #6b7280;
+            --primary: #2563eb;
+            --danger: #dc2626;
+            --warning: #d97706;
+            --success: #059669;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            font-size: 13px;
+        }
+
+        .header {
+            background: var(--white);
+            border-bottom: 1px solid var(--border);
+            padding: 0 24px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .header-title {
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .btn {
+            padding: 7px 14px;
+            border: none;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: #fff;
+        }
+
+        .btn-secondary {
+            background: var(--white);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-tab {
+            padding: 6px 12px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 11px;
+            cursor: pointer;
+            background: var(--white);
+            white-space: nowrap;
+        }
+
+        .btn-tab.active {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+        }
+
+        .main {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px 24px;
+        }
+
+        .card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, .06);
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            font-weight: 600;
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-body {
+            padding: 16px;
+        }
+
+        .grid {
+            display: grid;
+            gap: 20px;
+        }
+
+        .grid-2 {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .grid-3 {
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+
+        .grid-4 {
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+        }
+
+        .kpi {
+            text-align: center;
+            padding: 12px;
+            background: #f8fafc;
+            border-radius: 6px;
+        }
+
+        .kpi-value {
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        .kpi-label {
+            font-size: 10px;
+            color: var(--text2);
+            text-transform: uppercase;
+            margin-top: 2px;
+        }
+
+        .text-green {
+            color: var(--success);
+        }
+
+        .text-red {
+            color: var(--danger);
+        }
+
+        .text-warning {
+            color: var(--warning);
+        }
+
+        .chart-wrap {
+            position: relative;
+            height: 300px;
+        }
+
+        .chart-wrap canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+        }
+
+        th {
+            text-align: left;
+            padding: 6px 8px;
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--text2);
+            text-transform: uppercase;
+            border-bottom: 2px solid var(--border);
+        }
+
+        td {
+            padding: 6px 8px;
+            border-bottom: 1px solid #f0f1f3;
+        }
+
+        .bar {
+            height: 8px;
+            border-radius: 4px;
+            background: #e5e7eb;
+            margin-top: 2px;
+        }
+
+        .bar-fill {
+            height: 100%;
+            border-radius: 4px;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 40px;
+            color: var(--text2);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
     </style>
 </head>
+
 <body x-data="app()" x-init="init()">
-    
+
     <header class="header">
         <span class="header-title">Отчёты</span>
         <div style="display: flex; gap: 8px;">
             <button class="btn btn-secondary" @click="refresh()">Обновить</button>
         </div>
     </header>
-    
+
     <main class="main" x-show="!loading">
-        
+
         <!-- Вкладки -->
         <div class="tabs">
-            <button class="btn-tab" :class="tab === 'managers' ? 'active' : ''" @click="tab = 'managers'">По менеджерам</button>
-            <button class="btn-tab" :class="tab === 'payments' ? 'active' : ''" @click="tab = 'payments'">Платёжная дисциплина</button>
-            <button class="btn-tab" :class="tab === 'season' ? 'active' : ''" @click="tab = 'season'">Сезонность</button>
+            <button class="btn-tab" :class="tab === 'managers' ? 'active' : ''" @click="tab = 'managers'">По
+                менеджерам</button>
+            <button class="btn-tab" :class="tab === 'payments' ? 'active' : ''" @click="tab = 'payments'">Платёжная
+                дисциплина</button>
+            <button class="btn-tab" :class="tab === 'season' ? 'active' : ''"
+                @click="tab = 'season'">Сезонность</button>
             <button class="btn-tab" :class="tab === 'abc' ? 'active' : ''" @click="tab = 'abc'">ABC-анализ</button>
             <button class="btn-tab" :class="tab === 'cohort' ? 'active' : ''" @click="tab = 'cohort'">Когорты</button>
-            <button class="btn-tab" :class="tab === 'cancel' ? 'active' : ''" @click="tab = 'cancel'">Отказы по менеджерам</button>
-            <button class="btn-tab" :class="tab === 'compare' ? 'active' : ''" @click="tab = 'compare'">Сравнение периодов</button>
-            <button class="btn-tab" :class="tab === 'health' ? 'active' : ''" @click="tab = 'health'">Здоровье базы</button>
-            <button class="btn-tab" :class="tab === 'delivery' ? 'active' : ''" @click="tab = 'delivery'">Типы поставки</button>
+            <button class="btn-tab" :class="tab === 'cancel' ? 'active' : ''" @click="tab = 'cancel'">Отказы по
+                менеджерам</button>
+            <button class="btn-tab" :class="tab === 'compare' ? 'active' : ''" @click="tab = 'compare'">Сравнение
+                периодов</button>
+            <button class="btn-tab" :class="tab === 'health' ? 'active' : ''" @click="tab = 'health'">Здоровье
+                базы</button>
+            <button class="btn-tab" :class="tab === 'delivery' ? 'active' : ''" @click="tab = 'delivery'">Типы
+                поставки</button>
         </div>
-        
+
         <!-- ПО МЕНЕДЖЕРАМ -->
         <div x-show="tab === 'managers'">
             <div class="card">
                 <div class="card-header">Воронка по менеджерам</div>
                 <div class="card-body" style="overflow-x: auto;">
                     <table>
-                        <thead><tr><th>Менеджер</th><th>Клиентов</th><th>Сделок</th><th>Выручка</th><th>Ср. чек</th><th>Просрочка</th><th>DSO</th></tr></thead>
+                        <thead>
+                            <tr>
+                                <th>Менеджер</th>
+                                <th>Клиентов</th>
+                                <th>Сделок</th>
+                                <th>Выручка</th>
+                                <th>Ср. чек</th>
+                                <th>Просрочка</th>
+                                <th>DSO</th>
+                            </tr>
+                        </thead>
                         <tbody>
                             <template x-for="m in reports.managers" :key="m.name">
                                 <tr>
-                                    <td x-text="m.name"></td><td x-text="m.clients"></td><td x-text="m.orders"></td>
-                                    <td x-text="fmtMoney(m.revenue)"></td><td x-text="fmtMoney(m.avgCheck)"></td>
-                                    <td :class="m.overduePct > 10 ? 'text-red' : 'text-green'" x-text="m.overduePct + '%'"></td>
+                                    <td x-text="m.name"></td>
+                                    <td x-text="m.clients"></td>
+                                    <td x-text="m.orders"></td>
+                                    <td x-text="fmtMoney(m.revenue)"></td>
+                                    <td x-text="fmtMoney(m.avgCheck)"></td>
+                                    <td :class="m.overduePct > 10 ? 'text-red' : 'text-green'"
+                                        x-text="m.overduePct + '%'"></td>
                                     <td x-text="m.dso + ' дн'"></td>
                                 </tr>
                             </template>
@@ -85,25 +287,40 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- ПЛАТЁЖНАЯ ДИСЦИПЛИНА -->
         <div x-show="tab === 'payments'">
             <div class="grid grid-2">
                 <div class="card">
                     <div class="card-header">Распределение по DSO</div>
-                    <div class="card-body"><div class="chart-wrap"><canvas id="dsoChart"></canvas></div></div>
+                    <div class="card-body">
+                        <div class="chart-wrap"><canvas id="dsoChart"></canvas></div>
+                    </div>
                 </div>
                 <div class="card">
                     <div class="card-header">Суммы по группам</div>
                     <div class="card-body" style="overflow-x: auto;">
                         <table>
-                            <thead><tr><th>Группа</th><th>Клиентов</th><th>Сумма</th><th>Доля</th></tr></thead>
+                            <thead>
+                                <tr>
+                                    <th>Группа</th>
+                                    <th>Клиентов</th>
+                                    <th>Сумма</th>
+                                    <th>Доля</th>
+                                </tr>
+                            </thead>
                             <tbody>
                                 <template x-for="g in reports.dsoGroups" :key="g.name">
                                     <tr>
-                                        <td x-text="g.name"></td><td x-text="g.count"></td>
+                                        <td x-text="g.name"></td>
+                                        <td x-text="g.count"></td>
                                         <td x-text="fmtMoney(g.sum)"></td>
-                                        <td><div class="bar"><div class="bar-fill" :style="'width:' + g.pct + '%; background: var(--primary);'"></div></div><span x-text="g.pct + '%'"></span></td>
+                                        <td>
+                                            <div class="bar">
+                                                <div class="bar-fill"
+                                                    :style="'width:' + g.pct + '%; background: var(--primary);'"></div>
+                                            </div><span x-text="g.pct + '%'"></span>
+                                        </td>
                                     </tr>
                                 </template>
                             </tbody>
@@ -112,48 +329,80 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- СЕЗОННОСТЬ -->
         <div x-show="tab === 'season'">
             <div class="card">
                 <div class="card-header">Выручка по месяцам (все года)</div>
-                <div class="card-body"><div class="chart-wrap"><canvas id="seasonChart"></canvas></div></div>
+                <div class="card-body">
+                    <div class="chart-wrap"><canvas id="seasonChart"></canvas></div>
+                </div>
             </div>
         </div>
-        
+
         <!-- ABC-АНАЛИЗ -->
         <div x-show="tab === 'abc'">
             <div class="grid grid-2">
                 <div class="card">
                     <div class="card-header">ABC-распределение</div>
-                    <div class="card-body"><div class="chart-wrap"><canvas id="abcChart"></canvas></div></div>
+                    <div class="card-body">
+                        <div class="chart-wrap"><canvas id="abcChart"></canvas></div>
+                    </div>
                 </div>
                 <div class="card">
                     <div class="card-header">Группы</div>
                     <div class="card-body">
                         <div class="grid grid-3">
-                            <div class="kpi"><div class="kpi-value" x-text="reports.abc.A.count"></div><div class="kpi-label">A — клиентов</div><div class="kpi-value text-green" style="font-size:16px;" x-text="fmtMoney(reports.abc.A.revenue)"></div></div>
-                            <div class="kpi"><div class="kpi-value" x-text="reports.abc.B.count"></div><div class="kpi-label">B — клиентов</div><div class="kpi-value text-warning" style="font-size:16px;" x-text="fmtMoney(reports.abc.B.revenue)"></div></div>
-                            <div class="kpi"><div class="kpi-value" x-text="reports.abc.C.count"></div><div class="kpi-label">C — клиентов</div><div class="kpi-value text-red" style="font-size:16px;" x-text="fmtMoney(reports.abc.C.revenue)"></div></div>
+                            <div class="kpi">
+                                <div class="kpi-value" x-text="reports.abc.A.count"></div>
+                                <div class="kpi-label">A — клиентов</div>
+                                <div class="kpi-value text-green" style="font-size:16px;"
+                                    x-text="fmtMoney(reports.abc.A.revenue)"></div>
+                            </div>
+                            <div class="kpi">
+                                <div class="kpi-value" x-text="reports.abc.B.count"></div>
+                                <div class="kpi-label">B — клиентов</div>
+                                <div class="kpi-value text-warning" style="font-size:16px;"
+                                    x-text="fmtMoney(reports.abc.B.revenue)"></div>
+                            </div>
+                            <div class="kpi">
+                                <div class="kpi-value" x-text="reports.abc.C.count"></div>
+                                <div class="kpi-label">C — клиентов</div>
+                                <div class="kpi-value text-red" style="font-size:16px;"
+                                    x-text="fmtMoney(reports.abc.C.revenue)"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        
+
         <!-- КОГОРТЫ -->
         <div x-show="tab === 'cohort'">
             <div class="card">
                 <div class="card-header">Когортный анализ</div>
                 <div class="card-body" style="overflow-x: auto;">
                     <table>
-                        <thead><tr><th>Месяц прихода</th><th>Клиентов</th><th>Выручка 1-й мес</th><th>Выручка 3-й мес</th><th>Выручка 6-й мес</th><th>Удержание 6 мес</th></tr></thead>
+                        <thead>
+                            <tr>
+                                <th>Месяц прихода</th>
+                                <th>Клиентов</th>
+                                <th>Выручка 1-й мес</th>
+                                <th>Выручка 3-й мес</th>
+                                <th>Выручка 6-й мес</th>
+                                <th>Удержание 6 мес</th>
+                            </tr>
+                        </thead>
                         <tbody>
                             <template x-for="c in reports.cohorts" :key="c.month">
                                 <tr>
-                                    <td x-text="c.month"></td><td x-text="c.count"></td>
-                                    <td x-text="fmtMoney(c.m1)"></td><td x-text="fmtMoney(c.m3)"></td><td x-text="fmtMoney(c.m6)"></td>
-                                    <td :class="c.retention > 50 ? 'text-green' : 'text-red'" x-text="c.retention + '%'"></td>
+                                    <td x-text="c.month"></td>
+                                    <td x-text="c.count"></td>
+                                    <td x-text="fmtMoney(c.m1)"></td>
+                                    <td x-text="fmtMoney(c.m3)"></td>
+                                    <td x-text="fmtMoney(c.m6)"></td>
+                                    <td :class="c.retention > 50 ? 'text-green' : 'text-red'"
+                                        x-text="c.retention + '%'"></td>
                                 </tr>
                             </template>
                         </tbody>
@@ -161,20 +410,33 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- ОТКАЗЫ ПО МЕНЕДЖЕРАМ -->
         <div x-show="tab === 'cancel'">
             <div class="card">
                 <div class="card-header">Отказы по менеджерам</div>
                 <div class="card-body" style="overflow-x: auto;">
                     <table>
-                        <thead><tr><th>Менеджер</th><th>Отказов</th><th>Сумма потерь</th><th>% от всех отказов</th></tr></thead>
+                        <thead>
+                            <tr>
+                                <th>Менеджер</th>
+                                <th>Отказов</th>
+                                <th>Сумма потерь</th>
+                                <th>% от всех отказов</th>
+                            </tr>
+                        </thead>
                         <tbody>
                             <template x-for="m in reports.cancelByManager" :key="m.name">
                                 <tr>
-                                    <td x-text="m.name"></td><td x-text="m.count"></td>
+                                    <td x-text="m.name"></td>
+                                    <td x-text="m.count"></td>
                                     <td class="text-red" x-text="fmtMoney(m.sum)"></td>
-                                    <td><div class="bar"><div class="bar-fill" :style="'width:' + m.pct + '%; background: var(--danger);'"></div></div><span x-text="m.pct + '%'"></span></td>
+                                    <td>
+                                        <div class="bar">
+                                            <div class="bar-fill"
+                                                :style="'width:' + m.pct + '%; background: var(--danger);'"></div>
+                                        </div><span x-text="m.pct + '%'"></span>
+                                    </td>
                                 </tr>
                             </template>
                         </tbody>
@@ -182,37 +444,62 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- СРАВНЕНИЕ ПЕРИОДОВ -->
         <div x-show="tab === 'compare'">
             <div class="grid grid-4" style="margin-bottom: 20px;">
-                <div class="kpi"><div class="kpi-value" x-text="fmtMoney(reports.compare.revenue1)"></div><div class="kpi-label">Выручка 2022</div></div>
-                <div class="kpi"><div class="kpi-value" x-text="fmtMoney(reports.compare.revenue2)"></div><div class="kpi-label">Выручка 2023</div></div>
-                <div class="kpi"><div class="kpi-value" :class="reports.compare.revenueChange >= 0 ? 'text-green' : 'text-red'" x-text="(reports.compare.revenueChange >= 0 ? '+' : '') + reports.compare.revenueChange + '%'"></div><div class="kpi-label">Изменение</div></div>
-                <div class="kpi"><div class="kpi-value" x-text="reports.compare.clients1 + ' → ' + reports.compare.clients2"></div><div class="kpi-label">Клиентов</div></div>
+                <div class="kpi">
+                    <div class="kpi-value" x-text="fmtMoney(reports.compare.revenue1)"></div>
+                    <div class="kpi-label">Выручка 2022</div>
+                </div>
+                <div class="kpi">
+                    <div class="kpi-value" x-text="fmtMoney(reports.compare.revenue2)"></div>
+                    <div class="kpi-label">Выручка 2023</div>
+                </div>
+                <div class="kpi">
+                    <div class="kpi-value" :class="reports.compare.revenueChange >= 0 ? 'text-green' : 'text-red'"
+                        x-text="(reports.compare.revenueChange >= 0 ? '+' : '') + reports.compare.revenueChange + '%'">
+                    </div>
+                    <div class="kpi-label">Изменение</div>
+                </div>
+                <div class="kpi">
+                    <div class="kpi-value" x-text="reports.compare.clients1 + ' → ' + reports.compare.clients2"></div>
+                    <div class="kpi-label">Клиентов</div>
+                </div>
             </div>
         </div>
-        
+
         <!-- ЗДОРОВЬЕ БАЗЫ -->
         <div x-show="tab === 'health'">
             <div class="card">
                 <div class="card-header">Динамика базы клиентов</div>
-                <div class="card-body"><div class="chart-wrap"><canvas id="healthChart"></canvas></div></div>
+                <div class="card-body">
+                    <div class="chart-wrap"><canvas id="healthChart"></canvas></div>
+                </div>
             </div>
         </div>
-        
+
         <!-- ТИПЫ ПОСТАВКИ -->
         <div x-show="tab === 'delivery'">
             <div class="card">
                 <div class="card-header">По типам поставки</div>
                 <div class="card-body" style="overflow-x: auto;">
                     <table>
-                        <thead><tr><th>Тип</th><th>Сделок</th><th>Выручка</th><th>Ср. чек</th></tr></thead>
+                        <thead>
+                            <tr>
+                                <th>Тип</th>
+                                <th>Сделок</th>
+                                <th>Выручка</th>
+                                <th>Ср. чек</th>
+                            </tr>
+                        </thead>
                         <tbody>
                             <template x-for="d in reports.deliveryTypes" :key="d.name">
                                 <tr>
-                                    <td x-text="d.name || 'Не указан'"></td><td x-text="d.count"></td>
-                                    <td x-text="fmtMoney(d.revenue)"></td><td x-text="fmtMoney(d.avgCheck)"></td>
+                                    <td x-text="d.name || 'Не указан'"></td>
+                                    <td x-text="d.count"></td>
+                                    <td x-text="fmtMoney(d.revenue)"></td>
+                                    <td x-text="fmtMoney(d.avgCheck)"></td>
                                 </tr>
                             </template>
                         </tbody>
@@ -220,14 +507,14 @@
                 </div>
             </div>
         </div>
-        
+
     </main>
-    
+
     <div class="empty" x-show="loading">Загрузка...</div>
-    
+
     <script>
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyljkhgyAtSM_AzRzvBL5dxMGUYCwTHddlhcmyM_L0uwV1MauUH6h3pJubQ4DsXT72nWw/exec';
-        
+
         function fmtMoney(val) {
             if (!val) return '—';
             const num = Number(val);
@@ -235,14 +522,14 @@
             if (Math.abs(num) >= 1e3) return (num / 1e3).toFixed(0) + ' тыс ₽';
             return num.toLocaleString('ru-RU') + ' ₽';
         }
-        
+
         function app() {
             return {
                 loading: true, tab: 'managers', allData: [], reports: {},
                 charts: {},
-                
+
                 async init() { await this.loadData(); },
-                
+
                 async loadData() {
                     this.loading = true;
                     try {
@@ -253,13 +540,13 @@
                     } catch (e) { console.error(e); }
                     this.loading = false;
                 },
-                
+
                 async refresh() {
                     const timestamp = new Date().getTime();
                     await fetch(SCRIPT_URL + '?refresh=1&_cb=' + timestamp);
                     await this.loadData();
                 },
-                
+
                 buildAll() {
                     // Группировка по клиентам
                     const map = {};
@@ -269,15 +556,15 @@
                         map[id].push(o);
                     });
                     const clients = Object.entries(map).map(([id, orders]) => {
-                        orders.sort((a,b) => new Date(a.date) - new Date(b.date));
+                        orders.sort((a, b) => new Date(a.date) - new Date(b.date));
                         const amounts = orders.map(o => Number(o.amount) || 0);
-                        const total = amounts.reduce((a,b) => a+b, 0);
+                        const total = amounts.reduce((a, b) => a + b, 0);
                         const count = orders.length;
                         const last = orders[orders.length - 1];
                         const first = orders[0];
-                        return { id, name: last.organization || 'Клиент ' + id, manager: last.manager || '—', total, count, avgCheck: total/count, orders, firstDate: new Date(first.date), lastDate: new Date(last.date) };
+                        return { id, name: last.organization || 'Клиент ' + id, manager: last.manager || '—', total, count, avgCheck: total / count, orders, firstDate: new Date(first.date), lastDate: new Date(last.date) };
                     });
-                    
+
                     // 1. По менеджерам
                     const mgrMap = {};
                     clients.forEach(c => {
@@ -291,26 +578,26 @@
                         name, clients: d.clients, orders: d.orders, revenue: d.revenue,
                         avgCheck: Math.round(d.revenue / d.orders),
                         overduePct: 0, dso: 0
-                    })).sort((a,b) => b.revenue - a.revenue);
-                    
+                    })).sort((a, b) => b.revenue - a.revenue);
+
                     // 2. DSO группы
                     const dsoGroups = { '0-7 дн': [], '8-30 дн': [], '31-60 дн': [], '60+ дн': [] };
                     clients.forEach(c => { const dso = 0; if (dso <= 7) dsoGroups['0-7 дн'].push(c); else if (dso <= 30) dsoGroups['8-30 дн'].push(c); else if (dso <= 60) dsoGroups['31-60 дн'].push(c); else dsoGroups['60+ дн'].push(c); });
                     const totalClients = clients.length;
                     this.reports.dsoGroups = Object.entries(dsoGroups).map(([name, arr]) => ({
-                        name, count: arr.length, sum: arr.reduce((a,b) => a + b.total, 0),
+                        name, count: arr.length, sum: arr.reduce((a, b) => a + b.total, 0),
                         pct: Math.round(arr.length / totalClients * 100)
                     }));
-                    
+
                     // 3. Сезонность
                     const seasonMap = {};
                     this.allData.forEach(o => { const m = new Date(o.date).getMonth(); seasonMap[m] = (seasonMap[m] || 0) + (Number(o.amount) || 0); });
-                    const monthNames = ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
+                    const monthNames = ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'];
                     this.reports.season = Object.entries(seasonMap).map(([m, sum]) => ({ month: monthNames[Number(m)], sum }));
-                    
+
                     // 4. ABC
-                    const sorted = [...clients].sort((a,b) => b.total - a.total);
-                    const totalRev = sorted.reduce((a,b) => a + b.total, 0);
+                    const sorted = [...clients].sort((a, b) => b.total - a.total);
+                    const totalRev = sorted.reduce((a, b) => a + b.total, 0);
                     let cum = 0, aCount = 0, bCount = 0, aRev = 0, bRev = 0;
                     sorted.forEach(c => {
                         cum += c.total;
@@ -322,7 +609,7 @@
                         B: { count: bCount, revenue: bRev },
                         C: { count: sorted.length - aCount - bCount, revenue: totalRev - aRev - bRev }
                     };
-                    
+
                     // 5. Когорты
                     const cohortMap = {};
                     clients.forEach(c => {
@@ -332,66 +619,78 @@
                     });
                     this.reports.cohorts = Object.entries(cohortMap).slice(0, 12).map(([month, arr]) => ({
                         month, count: arr.length,
-                        m1: arr.reduce((a,b) => a + b.orders.filter(o => (new Date(o.date) - b.firstDate) / 86400000 <= 30).reduce((x,y) => x + (Number(y.amount)||0), 0), 0),
-                        m3: arr.reduce((a,b) => a + b.orders.filter(o => (new Date(o.date) - b.firstDate) / 86400000 <= 90).reduce((x,y) => x + (Number(y.amount)||0), 0), 0),
-                        m6: arr.reduce((a,b) => a + b.orders.filter(o => (new Date(o.date) - b.firstDate) / 86400000 <= 180).reduce((x,y) => x + (Number(y.amount)||0), 0), 0),
+                        m1: arr.reduce((a, b) => a + b.orders.filter(o => (new Date(o.date) - b.firstDate) / 86400000 <= 30).reduce((x, y) => x + (Number(y.amount) || 0), 0), 0),
+                        m3: arr.reduce((a, b) => a + b.orders.filter(o => (new Date(o.date) - b.firstDate) / 86400000 <= 90).reduce((x, y) => x + (Number(y.amount) || 0), 0), 0),
+                        m6: arr.reduce((a, b) => a + b.orders.filter(o => (new Date(o.date) - b.firstDate) / 86400000 <= 180).reduce((x, y) => x + (Number(y.amount) || 0), 0), 0),
                         retention: Math.round(arr.filter(c => c.orders.length >= 2).length / arr.length * 100)
                     }));
-                    
+
                     // 6. Отказы по менеджерам
                     const cancelMap = {};
                     this.allData.forEach(o => { if (!o.cancel_reason) return; const m = o.manager || '—'; if (!cancelMap[m]) cancelMap[m] = { count: 0, sum: 0 }; cancelMap[m].count++; cancelMap[m].sum += Number(o.amount) || 0; });
-                    const totalCancel = Object.values(cancelMap).reduce((a,b) => a + b.count, 0);
-                    this.reports.cancelByManager = Object.entries(cancelMap).map(([name, d]) => ({ name, count: d.count, sum: d.sum, pct: Math.round(d.count / totalCancel * 100) })).sort((a,b) => b.count - a.count);
-                    
+                    const totalCancel = Object.values(cancelMap).reduce((a, b) => a + b.count, 0);
+                    this.reports.cancelByManager = Object.entries(cancelMap).map(([name, d]) => ({ name, count: d.count, sum: d.sum, pct: Math.round(d.count / totalCancel * 100) })).sort((a, b) => b.count - a.count);
+
                     // 7. Сравнение 2022 vs 2023
-                    const r2022 = this.allData.filter(o => new Date(o.date).getFullYear() === 2022).reduce((a,b) => a + (Number(b.amount)||0), 0);
-                    const r2023 = this.allData.filter(o => new Date(o.date).getFullYear() === 2023).reduce((a,b) => a + (Number(b.amount)||0), 0);
+                    const r2022 = this.allData.filter(o => new Date(o.date).getFullYear() === 2022).reduce((a, b) => a + (Number(b.amount) || 0), 0);
+                    const r2023 = this.allData.filter(o => new Date(o.date).getFullYear() === 2023).reduce((a, b) => a + (Number(b.amount) || 0), 0);
                     const c2022 = new Set(this.allData.filter(o => new Date(o.date).getFullYear() === 2022).map(o => o.contact_id)).size;
                     const c2023 = new Set(this.allData.filter(o => new Date(o.date).getFullYear() === 2023).map(o => o.contact_id)).size;
-                    this.reports.compare = { revenue1: r2022, revenue2: r2023, revenueChange: Math.round((r2023/r2022 - 1) * 100), clients1: c2022, clients2: c2023 };
-                    
+                    this.reports.compare = { revenue1: r2022, revenue2: r2023, revenueChange: Math.round((r2023 / r2022 - 1) * 100), clients1: c2022, clients2: c2023 };
+
                     // 8. Здоровье базы
                     const healthMap = {};
-                    this.allData.forEach(o => { const m = new Date(o.date).toLocaleString('ru-RU', { month: 'short', year: 'numeric' }); if (!healthMap[m]) healthMap[m] = new Set(); healthMap[m].add(o.contact_id); });
-                    this.reports.health = Object.entries(healthMap).map(([m, set]) => ({ month: m, count: set.size }));
-                    
+                    this.allData.forEach(o => {
+                        const d = new Date(o.date);
+                        const k = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+                        if (!healthMap[k]) healthMap[k] = new Set();
+                        healthMap[k].add(o.contact_id);
+                    });
+                    this.reports.health = Object.entries(healthMap)
+                        .sort((a, b) => a[0].localeCompare(b[0]))
+                        .map(([m, set]) => {
+                            const [y, mo] = m.split('-');
+                            const monthNames = ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'];
+                            return { month: monthNames[parseInt(mo) - 1] + ' ' + y, count: set.size };
+                        });
+
                     // 9. Типы поставки
                     const deliveryMap = {};
                     this.allData.forEach(o => { const t = o.delivery_type || 'Не указан'; if (!deliveryMap[t]) deliveryMap[t] = { count: 0, sum: 0 }; deliveryMap[t].count++; deliveryMap[t].sum += Number(o.amount) || 0; });
-                    this.reports.deliveryTypes = Object.entries(deliveryMap).map(([name, d]) => ({ name, count: d.count, revenue: d.sum, avgCheck: Math.round(d.sum / d.count) })).sort((a,b) => b.revenue - a.revenue);
-                    
+                    this.reports.deliveryTypes = Object.entries(deliveryMap).map(([name, d]) => ({ name, count: d.count, revenue: d.sum, avgCheck: Math.round(d.sum / d.count) })).sort((a, b) => b.revenue - a.revenue);
+
                     // Графики
                     this.$nextTick(() => { this.drawDSOChart(); this.drawSeasonChart(); this.drawABCChart(); this.drawHealthChart(); });
                 },
-                
+
                 drawDSOChart() {
                     const canvas = document.getElementById('dsoChart'); if (!canvas) return;
                     if (this.charts.dso) this.charts.dso.destroy();
-                    this.charts.dso = new Chart(canvas.getContext('2d'), { type: 'doughnut', data: { labels: this.reports.dsoGroups.map(g => g.name), datasets: [{ data: this.reports.dsoGroups.map(g => g.count), backgroundColor: ['#059669','#2563eb','#d97706','#dc2626'] }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } } });
+                    this.charts.dso = new Chart(canvas.getContext('2d'), { type: 'doughnut', data: { labels: this.reports.dsoGroups.map(g => g.name), datasets: [{ data: this.reports.dsoGroups.map(g => g.count), backgroundColor: ['#059669', '#2563eb', '#d97706', '#dc2626'] }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } } });
                 },
-                
+
                 drawSeasonChart() {
                     const canvas = document.getElementById('seasonChart'); if (!canvas) return;
                     if (this.charts.season) this.charts.season.destroy();
-                    this.charts.season = new Chart(canvas.getContext('2d'), { type: 'bar', data: { labels: this.reports.season.map(s => s.month), datasets: [{ data: this.reports.season.map(s => s.sum), backgroundColor: '#2563eb', borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { ticks: { callback: v => v/1e6 + 'M' } } } } });
+                    this.charts.season = new Chart(canvas.getContext('2d'), { type: 'bar', data: { labels: this.reports.season.map(s => s.month), datasets: [{ data: this.reports.season.map(s => s.sum), backgroundColor: '#2563eb', borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { ticks: { callback: v => v / 1e6 + 'M' } } } } });
                 },
-                
+
                 drawABCChart() {
                     const canvas = document.getElementById('abcChart'); if (!canvas) return;
                     if (this.charts.abc) this.charts.abc.destroy();
-                    this.charts.abc = new Chart(canvas.getContext('2d'), { type: 'doughnut', data: { labels: ['A (80%)','B (15%)','C (5%)'], datasets: [{ data: [this.reports.abc.A.revenue, this.reports.abc.B.revenue, this.reports.abc.C.revenue], backgroundColor: ['#059669','#d97706','#dc2626'] }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } } });
+                    this.charts.abc = new Chart(canvas.getContext('2d'), { type: 'doughnut', data: { labels: ['A (80%)', 'B (15%)', 'C (5%)'], datasets: [{ data: [this.reports.abc.A.revenue, this.reports.abc.B.revenue, this.reports.abc.C.revenue], backgroundColor: ['#059669', '#d97706', '#dc2626'] }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } } });
                 },
-                
+
                 drawHealthChart() {
                     const canvas = document.getElementById('healthChart'); if (!canvas) return;
                     if (this.charts.health) this.charts.health.destroy();
                     this.charts.health = new Chart(canvas.getContext('2d'), { type: 'line', data: { labels: this.reports.health.map(h => h.month), datasets: [{ data: this.reports.health.map(h => h.count), borderColor: '#2563eb', backgroundColor: '#2563eb20', fill: true, tension: 0.3, pointRadius: 3 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
                 },
-                
+
                 fmtMoney(val) { return fmtMoney(val); }
             }
         }
     </script>
 </body>
+
 </html>
